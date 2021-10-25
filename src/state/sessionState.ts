@@ -44,6 +44,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       clearText();
 
       if (data.result === 'success') {
+        get().ws?.close();
+
         const ws = new WebSocket('ws://localhost:8080/' + data.session_id);
 
         ws.onmessage = (e) => {
