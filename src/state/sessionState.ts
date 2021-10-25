@@ -23,7 +23,7 @@ type CompileApiResult = {
 export const useSessionStore = create<SessionStore>((set, get) => ({
   ws: undefined,
   async requestCompile(language: string, code: string) {
-    const { setState, addText, addRaw, clearText } = useConsoleStore.getState();
+    const { setState, addText, clearText } = useConsoleStore.getState();
     try {
       clearText();
 
@@ -52,7 +52,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
           const packet = JSON.parse(e.data);
 
           if (packet.type === 'stdout') {
-            addRaw(packet.out);
+            addText(packet.out);
           } else if (packet.type === 'terminated') {
             addText(`프로그램 종료됨 (${packet.code})`);
             setState('terminated');
