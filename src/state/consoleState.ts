@@ -6,7 +6,8 @@ type ConsoleStore = {
   output: string[];
   state: ConsoleState;
   addText: (text: string) => void;
-  clearText: (text: string) => void;
+  addRaw: (text: string) => void;
+  clearText: () => void;
   setState: (state: ConsoleState) => void;
 };
 
@@ -15,6 +16,9 @@ export const useConsoleStore = create<ConsoleStore>((set, get) => ({
   state: 'init',
   addText(text: string) {
     set({ output: [...get().output, text + '\n'] });
+  },
+  addRaw(text: string) {
+    set({ output: [...get().output, text] });
   },
   clearText() {
     set({ output: [] });

@@ -1,13 +1,16 @@
 import { useConsoleStore } from '../state/consoleState';
+import { useSessionStore } from '../state/sessionState';
 import LanguageDropdowns from './LanguageDropdowns';
 
 function Console() {
   const { output, state, addText } = useConsoleStore();
+  const { sendToStdIn } = useSessionStore();
 
   const onEnterPress = (e: any) => {
     if (e.keyCode === 13 && !e.shiftKey) {
       e.preventDefault();
       addText(e.target.value);
+      sendToStdIn(e.target.value + '\n');
       e.target.value = '';
     }
   };
