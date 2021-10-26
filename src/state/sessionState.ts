@@ -18,6 +18,7 @@ type CompileApiResult = {
   result: CompileApiResultType;
   address?: string;
   session_id?: string;
+  message?: string;
 };
 
 export const useSessionStore = create<SessionStore>((set, get) => ({
@@ -67,17 +68,18 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         setState('running');
 
         return;
-      }
-
-      setState('terminated');
-      if (data.result === 'compile_error') {
+      } else if (data.result === 'compile_error') {
         addText('컴파일 실패');
+        addText(data.message!!);
+        setState('terminated');
       } else {
         addText('잘못된 접근');
+        setState('terminated');
       }
     } catch (err) {
       clearText();
       addText('서버 연결 실패');
+      setState('terminated');
     }
   },
   sendToStdIn(message: string) {
