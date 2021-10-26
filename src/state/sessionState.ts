@@ -31,14 +31,17 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       setState('compile');
       addText('컴파일 중...');
 
-      const response = await fetch('http://localhost:8080/compile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          language,
-          code,
-        }),
-      });
+      const response = await fetch(
+        `http://${process.env.REACT_APP_API_HOST}/compile`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language,
+            code,
+          }),
+        }
+      );
 
       const data = (await response.json()) as CompileApiResult;
 
@@ -47,7 +50,9 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       if (data.result === 'success') {
         get().ws?.close();
 
-        const ws = new WebSocket('ws://localhost:8080/' + data.session_id);
+        const ws = new WebSocket(
+          `ws://${process.env.REACT_APP_API_HOST}/` + data.session_id
+        );
 
         ws.onmessage = (e) => {
           const packet = JSON.parse(e.data);
