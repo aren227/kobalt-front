@@ -25,67 +25,54 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   ws: undefined,
   async requestCompile(language: string, code: string) {
     const { setState, addText, clearText } = useConsoleStore.getState();
-    try {
-      clearText();
 
-      setState('compile');
+    get().ws?.close();
+
+    const ws = new WebSocket(`ws://${process.env.REACT_APP_API_HOST}/`);
+
+    set({ ws });
+
+    clearText();
+
+    setState('compile');
+    addText('서버 연결 중...');
+
+    ws.onopen = (e) => {
+      clearText();
       addText('컴파일 중...');
 
-      const response = await fetch(
-        `http://${process.env.REACT_APP_API_HOST}/compile`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            language,
-            code,
-          }),
-        }
-      );
+      ws.send(JSON.stringify({ type: 'compile', language, code }));
+    };
 
-      const data = (await response.json()) as CompileApiResult;
+    ws.onmessage = (e) => {
+      const packet = JSON.parse(e.data);
 
-      clearText();
-
-      if (data.result === 'success') {
-        get().ws?.close();
-
-        const ws = new WebSocket(
-          `ws://${process.env.REACT_APP_API_HOST}/` + data.session_id
-        );
-
-        ws.onmessage = (e) => {
-          const packet = JSON.parse(e.data);
-
-          if (packet.type === 'stdout') {
-            addText(packet.out);
-          } else if (packet.type === 'terminated') {
-            addText(`프로그램 종료됨 (${packet.code})`);
-            setState('terminated');
-          } else if (packet.type === 'timeout') {
-            addText('세션 시간 만료');
-            setState('terminated');
-          }
-        };
-
-        set({ ws });
-
+      if (packet.type === 'compile_success') {
+        clearText();
         setState('running');
-
-        return;
-      } else if (data.result === 'compile_error') {
+      } else if (packet.type === 'compile_error') {
+        clearText();
+        setState('terminated');
         addText('컴파일 실패');
-        addText(data.message!!);
+        addText(packet.out);
+      } else if (packet.type === 'stdout') {
+        addText(packet.out);
+      } else if (packet.type === 'terminated') {
+        addText(`프로그램 종료됨 (${packet.code})`);
         setState('terminated');
-      } else {
-        addText('잘못된 접근');
+      } else if (packet.type === 'timeout') {
+        addText('세션 시간 만료');
         setState('terminated');
+      } else if (packet.type === 'closed') {
+        ws.close();
       }
-    } catch (err) {
+    };
+
+    ws.onerror = (e) => {
       clearText();
       addText('서버 연결 실패');
       setState('terminated');
-    }
+    };
   },
   sendToStdIn(message: string) {
     get().ws?.send(
