@@ -28,7 +28,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
     get().ws?.close();
 
-    const ws = new WebSocket(`ws://${process.env.REACT_APP_API_HOST}/`);
+    const ws = new WebSocket(`${process.env.REACT_APP_API_HOST}`);
 
     set({ ws });
 
