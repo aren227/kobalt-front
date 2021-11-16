@@ -2,7 +2,7 @@ import { Menu } from '@headlessui/react';
 import { FaSortDown } from 'react-icons/fa';
 
 function LanguageDropdowns() {
-  const languages = ['C++', 'Python'];
+  const languages = ['C++'];
   const currentLanguage = 'C++';
 
   return (
